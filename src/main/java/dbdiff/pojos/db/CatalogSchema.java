@@ -6,46 +6,28 @@ import java.util.Objects;
  * Encapsulation for the current catalog/schema of interest.
  */
 public class CatalogSchema {
-    /**
-     * Default schema
-     */
+
     public static final String DEFAULT_SCHEMA = "public";
-
-    /**
-     * Default catalog
-     */
     public static final String DEFAULT_CATALOG = null;
-    private final String m_catalog;
-    private final String m_schema;
-    /**
-     * Construct a new {@link CatalogSchema}.
-     * @param catalog catalog.
-     * @param schema schema.
-     */
-    public CatalogSchema(String catalog, String schema) {
-        m_catalog = catalog;
-        m_schema = schema;
-    }
 
-    /**
-     * @return default catalog/schema.
-     */
     public static CatalogSchema defaultCatalogSchema() {
         return new CatalogSchema(DEFAULT_CATALOG, DEFAULT_SCHEMA);
     }
 
-    /**
-     * @return the catalog.
-     */
-    public String getCatalog() {
-        return m_catalog;
+
+    private final String catalog;
+    private final String schema;
+
+    public CatalogSchema(String catalog, String schema) {
+        this.catalog = catalog;
+        this.schema = schema;
     }
 
-    /**
-     * @return the schema.
-     */
+    public String getCatalog() {
+        return catalog;
+    }
     public String getSchema() {
-        return m_schema;
+        return schema;
     }
 
     @Override
@@ -67,6 +49,6 @@ public class CatalogSchema {
 
     @Override
     public String toString() {
-        return "[" + m_catalog + "." + m_schema + "]";
+        return "[" + catalog + "." + schema + "]";
     }
 }

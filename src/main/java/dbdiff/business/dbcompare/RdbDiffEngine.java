@@ -9,6 +9,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import dbdiff.pojos.db.Column;
 import dbdiff.pojos.db.ForeignKey;
+import dbdiff.pojos.relationalDb.NamedSchemaItem;
 import dbdiff.pojos.relationalDb.RelationalDatabase;
 import dbdiff.pojos.relationalDb.RelationalIndex;
 import dbdiff.pojos.relationalDb.RelationalTable;
@@ -18,17 +19,15 @@ import org.apache.commons.lang.StringUtils;
 import java.util.*;
 import java.util.Map.Entry;
 
-/**
- * Business logic to compare two RelationalDatabase objects
- */
-public class RdbDiffEngine {
+public enum RdbDiffEngine {;
+
     /**
      * Compare two relational DB schemas.
      * @param refDb reference database.
      * @param testDb test database.
      * @return the list of DB schema differences.
      */
-    public List<RdbCompareError> compareRelationalDatabase(RelationalDatabase refDb, RelationalDatabase testDb) {
+    public static List<RdbCompareError> compareRelationalDatabase(RelationalDatabase refDb, RelationalDatabase testDb) {
         List<RdbCompareError> errors = new LinkedList<RdbCompareError>();
 
         // First check every test table exists in the reference db
@@ -64,7 +63,7 @@ public class RdbDiffEngine {
      * @param testT a test RelationalTable
      * @return list of table differences.
      */
-    public List<RdbCompareError> compareRelationalTables(RelationalTable refT, RelationalTable testT) {
+    public static List<RdbCompareError> compareRelationalTables(RelationalTable refT, RelationalTable testT) {
         List<RdbCompareError> errors = new ArrayList<>();
 
         // Compare primary key
@@ -88,7 +87,7 @@ public class RdbDiffEngine {
      * @param testT test table.
      * @return primary key differences.
      */
-    private List<RdbCompareError> comparePrimaryKeys(RelationalTable refT, RelationalTable testT) {
+    private static List<RdbCompareError> comparePrimaryKeys(RelationalTable refT, RelationalTable testT) {
         List<RdbCompareError> errors = new ArrayList<>();
         if (CollectionUtils.isEmpty(refT.getPkColumns())) {
             if (CollectionUtils.isNotEmpty(testT.getPkColumns())) {
@@ -120,7 +119,7 @@ public class RdbDiffEngine {
      * @param testT A test table
      * @return the list of column differences.
      */
-    private List<RdbCompareError> compareColumns(RelationalTable refT, RelationalTable testT) {
+    private static List<RdbCompareError> compareColumns(RelationalTable refT, RelationalTable testT) {
         List<RdbCompareError> errors = new ArrayList<>();
         //First check every test column exists in the reference table
         for (Column testC : testT.getColumns()) {
@@ -200,7 +199,7 @@ public class RdbDiffEngine {
      * @param refT reference table that matches the test table.
      * @return a {@link ForeignKeyCompareError} specific to the foreign key.
      */
-    private ForeignKeyCompareError getUnexpectedFkError(ForeignKey testFk, RelationalTable testT, RelationalTable refT) {
+    private static ForeignKeyCompareError getUnexpectedFkError(ForeignKey testFk, RelationalTable testT, RelationalTable refT) {
         Set<ForeignKey> refFksByName = refT.getFksByName(testFk.getFkName());
 
         if (!refFksByName.isEmpty()) {
@@ -269,7 +268,7 @@ public class RdbDiffEngine {
      * @param testT A test table
      * @return foreign key differences.
      */
-    private List<RdbCompareError> compareForeignKeys(RelationalTable refT, RelationalTable testT) {
+    private static List<RdbCompareError> compareForeignKeys(RelationalTable refT, RelationalTable testT) {
         List<RdbCompareError> errors = new ArrayList<>();
         Set<ForeignKey> refFks = new HashSet<>(refT.getFks());
 
@@ -298,7 +297,7 @@ public class RdbDiffEngine {
      * @param testT test table.
      * @return the list of index differences.
      */
-    private List<RdbCompareError> compareIndices(final RelationalTable refT, final RelationalTable testT) {
+    private static List<RdbCompareError> compareIndices(final RelationalTable refT, final RelationalTable testT) {
         Multimap<List<String>, RelationalIndex> refIndices = ArrayListMultimap.create(refT.getIndicesByColumns());
         List<RdbCompareError> errors = new ArrayList<>();
 
@@ -307,7 +306,7 @@ public class RdbDiffEngine {
             if (CollectionUtils.isEmpty(matchingRefIndices)) {
                 for (RelationalIndex testIndex : entry.getValue()) {
                     errors.add(new RdbCompareError(RdbCompareErrorType.UNEXPECTED_INDEX,
-                            "Test index \"" + getIndexDesc(testIndex, testT) + "\" is unexpected!",
+                            "Test index \"" + getIndexDescription(testIndex, testT) + "\" is unexpected!",
                             RdbFoundOnSide.TEST));
                 }
             } else {
@@ -337,7 +336,7 @@ public class RdbDiffEngine {
                 if (refIndicesWithUnknownNames == 0 && !testIndexNames.isEmpty()) {
                     for (String testIndexName : testIndexNames) {
                         errors.add(new RdbCompareError(RdbCompareErrorType.UNEXPECTED_INDEX, "Test index \""
-                                + getIndexDesc(testIndexName, entry.getKey(), testT) + "\" is unexpected!",
+                                + getIndexDescription(testIndexName, entry.getKey(), testT) + "\" is unexpected!",
                                 RdbFoundOnSide.TEST));
                     }
                 } else if (testIndexNames.size() > refIndicesWithUnknownNames) {
@@ -348,7 +347,7 @@ public class RdbDiffEngine {
                                     new Function<String, String>() {
                                         @Override
                                         public String apply(String from) {
-                                            return "\"" + getIndexDesc(from, entry.getKey(), testT) + "\"";
+                                            return "\"" + getIndexDescription(from, entry.getKey(), testT) + "\"";
                                         }
                                     })) + " are unexpected!", RdbFoundOnSide.TEST));
                 }
@@ -357,7 +356,7 @@ public class RdbDiffEngine {
                 if (testIndicesWithUnknownNames == 0 && !refIndexNames.isEmpty()) {
                     for (String refIndexName : refIndexNames) {
                         errors.add(new RdbCompareError(RdbCompareErrorType.MISSING_INDEX, "Reference index \""
-                                + getIndexDesc(refIndexName, entry.getKey(), refT) + "\" is missing!",
+                                + getIndexDescription(refIndexName, entry.getKey(), refT) + "\" is missing!",
                                 RdbFoundOnSide.REF));
                     }
                 } else if (refIndexNames.size() > testIndicesWithUnknownNames) {
@@ -368,7 +367,7 @@ public class RdbDiffEngine {
                                     new Function<String, String>() {
                                         @Override
                                         public String apply(String from) {
-                                            return "\"" + getIndexDesc(from, entry.getKey(), refT) + "\"";
+                                            return "\"" + getIndexDescription(from, entry.getKey(), refT) + "\"";
                                         }
                                     })) + " are missing!", RdbFoundOnSide.REF));
                 }
@@ -377,30 +376,14 @@ public class RdbDiffEngine {
         return errors;
     }
 
-    /**
-     * Create a human-readable description of a table index.
-     * @param indexName index name.
-     * @param columnNames names of the columns.
-     * @param owner the table that the index belongs to.
-     * @return a human-readable description of the index.
-     */
-    private String getIndexDesc(String indexName, Collection<String> columnNames, RelationalTable owner) {
-        return (indexName == null ? "<UNKNOWN>" : indexName) + "="
-                + owner.getName() + "(" + Joiner.on(',').join(columnNames) + ")";
+    private static String getIndexDescription(RelationalIndex idx, RelationalTable owner) {
+        return getIndexDescription(idx.getName(), Collections2.transform(idx.getColumns(), NamedSchemaItem::getName), owner);
+    }
+    private static String getIndexDescription(String indexName, Collection<String> columnNames, RelationalTable owner) {
+        return (indexName == null ? "<UNKNOWN>" : indexName)
+             + "="
+             + owner.getName()
+             + "(" + Joiner.on(',').join(columnNames) + ")";
     }
 
-    /**
-     * Create a human-readable description of a table index.
-     * @param idx index model.
-     * @param owner the table that owns the index.
-     * @return a human-readable description of the index.
-     */
-    private String getIndexDesc(RelationalIndex idx, RelationalTable owner) {
-        return getIndexDesc(idx.getName(), Collections2.transform(idx.getColumns(), new Function<Column, String>() {
-            @Override
-            public String apply(Column from) {
-                return from.getName();
-            }
-        }), owner);
-    }
 }

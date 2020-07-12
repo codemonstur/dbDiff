@@ -2,7 +2,10 @@ package dbdiff.builder;
 
 import dbdiff.pojos.db.CatalogSchema;
 import dbdiff.pojos.error.InconsistentSchemaException;
+import dbdiff.pojos.error.RelationalDatabaseReadException;
 import dbdiff.pojos.relationalDb.RelationalDatabase;
+
+import java.sql.SQLException;
 
 /**
  * Builds a {@link RelationalDatabase} model from a live database.
@@ -14,5 +17,5 @@ public interface RelationalDatabaseBuilder {
      * @throws RelationalDatabaseReadException if database communication failed.
      * @throws InconsistentSchemaException     if schema information was inconsistent (see {@link InconsistentSchemaException}).
      */
-    RelationalDatabase createRelationalDatabase(CatalogSchema catalogSchema) throws RelationalDatabaseReadException, InconsistentSchemaException;
+    RelationalDatabase createRelationalDatabase(CatalogSchema catalogSchema) throws SQLException;
 }

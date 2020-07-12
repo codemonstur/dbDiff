@@ -1,6 +1,14 @@
 DbDiff
 ========================
 
+Original code by Vecna Technologies.
+After a bunch of cleanup and rewriting I got it to work.
+Only to discover that the code doesn't generate migration scripts.
+It can only report differences in human readable form.
+
+I've given up on this tool for now.
+Maybe later I'll pick it up again to make it generate migration scripts.
+
 About
 -----------------
 
@@ -16,8 +24,6 @@ Features
  - Missing or unexpected primary keys/indices/unique constraints
 * Database Independent
   - Uses JDBC MetaData class - as long as you have a JDBC driver and a solid MetaData implementation, you should be fine.
-* Supports Hibernate
-  - Can compare Hibernate configuration with a live database schema
 
 Core API
 -----------------
@@ -26,20 +32,13 @@ See the following classes:
 
 * RelationalDatabaseBeanImpl: reads the schema from a live database.
 * RdbDiffEngine: compares two database schemas.
-* HibernateMappingsConverter: converts Hibernate mappings into a database schema representation.
-* HibernateSchemaValidator: validates the schema of a live database against Hibernate mappings.
-
-Maven Plugin
------------------
-
-To incorporate HibernateSchemaValidator into a Maven build process, check out vecnatechnologies/hibernate-schema-plugin.
 
 Tools
 -----------------
 
 There are two runnable classes under the tools module:
 
-* com.vecna.dbDiff.tools.MakeReferenceDatabase
+* dbdiff.tools.MakeReferenceDatabase
  - Use this tool to create a new reference database file. 
  - The db file is a serialized version of the internal program db model class. 
  - The file to be created is specified with a command-line argument. By default, it is 'myDb.ser'.

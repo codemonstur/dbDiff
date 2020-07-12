@@ -1,0 +1,5 @@
+dbdiff\builder\RelationalDatabaseBuilderTest.class
+dbdiff\builder\MigrationTest.class
+dbdiff\pojos\ColumnTypeTest.class
+dbdiff\util\ThreadLocalMetadataFactory$1.class
+dbdiff\util\ThreadLocalMetadataFactory.class

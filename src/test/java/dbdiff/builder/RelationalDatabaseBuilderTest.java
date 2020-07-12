@@ -1,7 +1,7 @@
 package dbdiff.builder;
 
 import dbdiff.jdbc.MetadataFactory;
-import dbdiff.jdbc.ThreadLocalMetadataFactory;
+import dbdiff.util.ThreadLocalMetadataFactory;
 import dbdiff.pojos.db.CatalogSchema;
 import dbdiff.pojos.db.Column;
 import dbdiff.pojos.db.ForeignKey;
@@ -19,9 +19,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Tests {@link RelationalDatabaseBuilderImpl}.
- */
 public class RelationalDatabaseBuilderTest extends TestCase {
     private RelationalDatabase getDatabase() throws Exception {
         try (MetadataFactory factory = new ThreadLocalMetadataFactory("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "")) {
@@ -36,7 +33,7 @@ public class RelationalDatabaseBuilderTest extends TestCase {
                 }
             }
 
-            RelationalDatabaseBuilder builder = new RelationalDatabaseBuilderImpl(factory);
+            RelationalDatabaseBuilder builder = new ParallelRDBuilder(factory);
             return builder.createRelationalDatabase(new CatalogSchema(null, "PUBLIC"));
         }
     }
@@ -61,7 +58,7 @@ public class RelationalDatabaseBuilderTest extends TestCase {
     }
 
     /**
-     * Test {@link RelationalDatabaseBuilderImpl#createRelationalDatabase(CatalogSchema)).
+     * Test {@link ParallelRDBuilder#createRelationalDatabase(CatalogSchema)).
      *
      * @throws Exception
      */
