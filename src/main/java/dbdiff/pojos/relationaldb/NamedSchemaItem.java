@@ -1,4 +1,4 @@
-package dbdiff.pojos.relationalDb;
+package dbdiff.pojos.relationaldb;
 
 import dbdiff.pojos.db.CatalogSchema;
 

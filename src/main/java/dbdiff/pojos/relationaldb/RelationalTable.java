@@ -1,4 +1,4 @@
-package dbdiff.pojos.relationalDb;
+package dbdiff.pojos.relationaldb;
 
 import com.google.common.collect.*;
 import dbdiff.pojos.db.CatalogSchema;

@@ -1,10 +1,10 @@
-package dbdiff.business.dbcompare;
+package dbdiff.pojos.dbcompare;
 
 /**
  * Represents a difference between two relational DB schemas.
  */
-public class RdbCompareError {
-    private final RdbCompareErrorType errorType;
+public class RdbDifference {
+    private final RdbDifferenceType errorType;
     private final String message;
     private final RdbFoundOnSide foundOn;
 
@@ -15,7 +15,7 @@ public class RdbCompareError {
      * @param message descriptive message.
      * @param foundOn indicates whether an extra thing was found on the Ref or Test side.
      */
-    public RdbCompareError(RdbCompareErrorType errorType, String message, RdbFoundOnSide foundOn) {
+    public RdbDifference(RdbDifferenceType errorType, String message, RdbFoundOnSide foundOn) {
         this.errorType = errorType;
         this.message = message;
         this.foundOn = foundOn;
@@ -24,7 +24,7 @@ public class RdbCompareError {
     /**
      * @return type of the schema difference.
      */
-    public RdbCompareErrorType getErrorType() {
+    public RdbDifferenceType getErrorType() {
         return errorType;
     }
 

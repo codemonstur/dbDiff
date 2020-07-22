@@ -1,13 +1,12 @@
-package dbdiff.builder;
+package dbdiff;
 
-import dbdiff.pojos.db.CatalogSchema;
-import dbdiff.pojos.relationalDb.RelationalDatabase;
+import dbdiff.pojos.relationaldb.RelationalDatabase;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static dbdiff.builder.ConcurrentRDBuilder.createRelationalDatabase;
-import static dbdiff.business.dbcompare.RdbDiffEngine.compareRelationalDatabase;
+import static dbdiff.ConcurrentRDBuilder.createRelationalDatabase;
+import static dbdiff.RdbDiffEngine.compareRelationalDatabase;
 
 public class MigrationTest {
 
@@ -28,7 +27,8 @@ public class MigrationTest {
     private static RelationalDatabase loadRelationalDatabase(final String url, final String username
             , final String password) throws SQLException {
         try (final var connection = DriverManager.getConnection(url, username, password)) {
-            return createRelationalDatabase(connection.getMetaData(), new CatalogSchema(connection.getCatalog(), connection.getSchema()));
+            return createRelationalDatabase(connection.getMetaData(), connection.getCatalog(), connection.getSchema());
         }
     }
+
 }

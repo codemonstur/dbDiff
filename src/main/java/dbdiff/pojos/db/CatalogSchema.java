@@ -7,14 +7,6 @@ import java.util.Objects;
  */
 public class CatalogSchema {
 
-    public static final String DEFAULT_SCHEMA = "public";
-    public static final String DEFAULT_CATALOG = null;
-
-    public static CatalogSchema defaultCatalogSchema() {
-        return new CatalogSchema(DEFAULT_CATALOG, DEFAULT_SCHEMA);
-    }
-
-
     private final String catalog;
     private final String schema;
 

@@ -1,8 +1,5 @@
-package dbdiff.business.dbcompare;
+package dbdiff.pojos.dbcompare;
 
-/**
- * Enumeration for possible database comparison errors
- */
 public enum RdbFoundOnSide {
     /** Extra thing found on test db */
     TEST,

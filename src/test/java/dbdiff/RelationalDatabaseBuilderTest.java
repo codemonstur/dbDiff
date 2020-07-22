@@ -1,67 +1,25 @@
-package dbdiff.builder;
+package dbdiff;
 
-import dbdiff.jdbc.MetadataFactory;
-import dbdiff.util.ThreadLocalMetadataFactory;
-import dbdiff.pojos.db.CatalogSchema;
 import dbdiff.pojos.db.Column;
 import dbdiff.pojos.db.ForeignKey;
-import dbdiff.pojos.relationalDb.RelationalDatabase;
-import dbdiff.pojos.relationalDb.RelationalIndex;
-import dbdiff.pojos.relationalDb.RelationalTable;
+import dbdiff.pojos.relationaldb.RelationalDatabase;
+import dbdiff.pojos.relationaldb.RelationalIndex;
+import dbdiff.pojos.relationaldb.RelationalTable;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 
-import java.io.InputStream;
-import java.sql.Connection;
+import java.io.IOException;
+import java.sql.DriverManager;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static dbdiff.ConcurrentRDBuilder.createRelationalDatabase;
+
 public class RelationalDatabaseBuilderTest extends TestCase {
-    private RelationalDatabase getDatabase() throws Exception {
-        try (MetadataFactory factory = new ThreadLocalMetadataFactory("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "")) {
-            try (InputStream stream = getClass().getResourceAsStream("/test-db.sql")) {
-                String sql = IOUtils.toString(stream);
 
-                Connection ddlConnection = factory.getMetadata().getConnection();
-                ddlConnection.setAutoCommit(true);
-
-                for (String sqlStatement : sql.split(";")) {
-                    ddlConnection.createStatement().execute(sqlStatement);
-                }
-            }
-
-            RelationalDatabaseBuilder builder = new ParallelRDBuilder(factory);
-            return builder.createRelationalDatabase(new CatalogSchema(null, "PUBLIC"));
-        }
-    }
-
-    /**
-     * Find a unique index that spans a list of columns. Fail if there's no such unique index.
-     */
-    private RelationalIndex getIndex(RelationalTable table, String... columnNames) {
-        Collection<RelationalIndex> indices = table.getIndicesByColumns().get(Arrays.asList(columnNames));
-
-        assertEquals("cannot find a unique index for columns " + Arrays.asList(columnNames), 1, indices.size());
-        return indices.iterator().next();
-    }
-
-    /**
-     * Find a unique foreign key by name. Fail if there's no such unique foreign key.
-     */
-    private ForeignKey getForeignKey(RelationalTable table, String name) {
-        Collection<ForeignKey> foreignKeys = table.getFksByName(name);
-        assertEquals("cannot find a unique foreign key " + name, 1, foreignKeys.size());
-        return foreignKeys.iterator().next();
-    }
-
-    /**
-     * Test {@link ParallelRDBuilder#createRelationalDatabase(CatalogSchema)).
-     *
-     * @throws Exception
-     */
     public void testCreateRelationalDatabase() throws Exception {
         RelationalDatabase database = getDatabase();
 
@@ -128,4 +86,41 @@ public class RelationalDatabaseBuilderTest extends TestCase {
         assertEquals("ID", fkRelative.getPkColumn());
         assertEquals("PERSON", fkRelative.getPkTable());
     }
+
+    private static RelationalDatabase getDatabase() throws Exception {
+        try (final var connection = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "")) {
+            connection.setAutoCommit(true);
+
+            for (String sqlStatement : readResource("/test-db.sql").split(";")) {
+                connection.createStatement().execute(sqlStatement);
+            }
+            return createRelationalDatabase(connection.getMetaData(), null, "PUBLIC");
+        }
+    }
+
+    private static String readResource(final String resource) throws IOException {
+        try (final var stream = RelationalDatabaseBuilderTest.class.getResourceAsStream(resource)) {
+            return IOUtils.toString(stream);
+        }
+    }
+
+    /**
+     * Find a unique index that spans a list of columns. Fail if there's no such unique index.
+     */
+    private static RelationalIndex getIndex(RelationalTable table, String... columnNames) {
+        Collection<RelationalIndex> indices = table.getIndicesByColumns().get(Arrays.asList(columnNames));
+
+        assertEquals("cannot find a unique index for columns " + Arrays.asList(columnNames), 1, indices.size());
+        return indices.iterator().next();
+    }
+
+    /**
+     * Find a unique foreign key by name. Fail if there's no such unique foreign key.
+     */
+    private static ForeignKey getForeignKey(RelationalTable table, String name) {
+        Collection<ForeignKey> foreignKeys = table.getFksByName(name);
+        assertEquals("cannot find a unique foreign key " + name, 1, foreignKeys.size());
+        return foreignKeys.iterator().next();
+    }
+
 }

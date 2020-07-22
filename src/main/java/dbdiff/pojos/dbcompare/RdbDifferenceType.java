@@ -1,9 +1,9 @@
-package dbdiff.business.dbcompare;
+package dbdiff.pojos.dbcompare;
 
 /**
  * Enumeration for possible database comparison errors
  */
-public enum RdbCompareErrorType {
+public enum RdbDifferenceType {
     /** A testdb is missing a ref table */
     MISSING_TABLE,
 

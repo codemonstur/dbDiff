@@ -1,4 +1,4 @@
-package dbdiff.pojos.relationalDb;
+package dbdiff.pojos.relationaldb;
 
 import dbdiff.pojos.error.InconsistentSchemaException;
 
@@ -7,18 +7,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * A Serializable collection of RelationalTables, representing a db.
- *
- * Note that this is designed to work wrt to a single schema or catalog!
- */
 public class RelationalDatabase {
     private final Map<String, RelationalTable> m_tablesByName;
 
-    /**
-     * Construct a new instance.
-     * @param tables ordered collection of tables.
-     */
     public RelationalDatabase(Collection<RelationalTable> tables) {
         m_tablesByName = new LinkedHashMap<>(tables.size());
         for (RelationalTable rt : tables) {
@@ -30,18 +21,10 @@ public class RelationalDatabase {
         }
     }
 
-    /**
-     * @return ordered collection of tables in this database.
-     */
     public Collection<RelationalTable> getTables() {
         return Collections.unmodifiableCollection(m_tablesByName.values());
     }
 
-    /**
-     * Gets a specific table by name.
-     * @param tableName the name of the table.
-     * @return the table with the given name.
-     */
     public RelationalTable getTableByName(String tableName) {
         return m_tablesByName.get(tableName);
     }

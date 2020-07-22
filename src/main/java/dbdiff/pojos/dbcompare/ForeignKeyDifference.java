@@ -1,11 +1,11 @@
-package dbdiff.business.dbcompare;
+package dbdiff.pojos.dbcompare;
 
 import dbdiff.pojos.db.ForeignKey;
 
 /**
- * Extends {@link RdbCompareError} to hold extended information specific to foreign key errors.
+ * Extends {@link RdbDifference} to hold extended information specific to foreign key errors.
  */
-public class ForeignKeyCompareError extends RdbCompareError {
+public class ForeignKeyDifference extends RdbDifference {
     private final ForeignKey similarFk;
 
     /**
@@ -14,7 +14,7 @@ public class ForeignKeyCompareError extends RdbCompareError {
      * @param message message.
      * @param similarFk existing foreign key similar to the foreign key being tested.
      */
-    public ForeignKeyCompareError(RdbCompareErrorType errorType, String message, ForeignKey similarFk) {
+    public ForeignKeyDifference(RdbDifferenceType errorType, String message, ForeignKey similarFk) {
         super(errorType, message, RdbFoundOnSide.UNSPECIFIED);
         this.similarFk = similarFk;
     }

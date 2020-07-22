@@ -1,64 +1,42 @@
-package dbdiff.builder;
+package dbdiff;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import dbdiff.jdbc.MetadataFactory;
-import dbdiff.pojos.db.CatalogSchema;
-import dbdiff.pojos.db.ColumnType;
-import dbdiff.pojos.db.TableType;
-import dbdiff.pojos.db.Column;
-import dbdiff.pojos.db.ForeignKey;
+import dbdiff.pojos.db.*;
 import dbdiff.pojos.error.InconsistentSchemaException;
-import dbdiff.pojos.relationalDb.RelationalDatabase;
-import dbdiff.pojos.relationalDb.RelationalIndex;
-import dbdiff.pojos.relationalDb.RelationalTable;
+import dbdiff.pojos.relationaldb.RelationalDatabase;
+import dbdiff.pojos.relationaldb.RelationalIndex;
+import dbdiff.pojos.relationaldb.RelationalTable;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.*;
 
-import static dbdiff.util.Concurrency.runInParallel;
+public enum ConcurrentRDBuilder {;
 
-public class ParallelRDBuilder implements RelationalDatabaseBuilder {
-    private final MetadataFactory metadataFactory;
-    private final ExecutorService executor = new ForkJoinPool();
+    public static RelationalDatabase createRelationalDatabase(final DatabaseMetaData metadata, final String catalog
+            , final String schema) throws SQLException {
+        final var tables = getAllTables(metadata, catalog, schema);
 
-    public ParallelRDBuilder(MetadataFactory metadataFactory) {
-        this.metadataFactory = metadataFactory;
-    }
-
-    @Override
-    public RelationalDatabase createRelationalDatabase(CatalogSchema catalogSchema) throws SQLException {
-        List<RelationalTable> tables;
-        try {
-            tables = getAllTables(catalogSchema);
-        } catch (SQLException e) {
-            throw new SQLException("could not read table information", e);
+        for (final var table : tables) {
+            table.setColumns(getColumns(metadata, table));
+            table.setFks(new HashSet<>(getForeignKeys(metadata, table)));
+            table.setPkColumns(getPrimaryKeyColumns(metadata, table));
+            table.setIndices(getIndices(metadata, table));
         }
-
-        // build columns, foreign and primary keys in parallel
-        runInParallel(executor, Collections2.transform(tables, table -> (Callable<Void>) () -> {
-            table.setColumns(getColumns(table));
-            table.setFks(new HashSet<>(getForeignKeys(table)));
-            table.setPkColumns(getPrimaryKeyColumns(table));
-            table.setIndices(getIndices(table));
-            return null;
-        }));
 
         return new RelationalDatabase(tables);
     }
 
-    private List<RelationalTable> getAllTables(final CatalogSchema catalogSchema) throws SQLException {
-        // Get the ResultSet of tables
-        String[] tableTypes = {TableType.TABLE.name()};
-        ResultSet rs = doGetTablesQuery(catalogSchema, tableTypes);
+    private static final String[] TABLES_ONLY = new String[] { TableType.TABLE.name() };
 
-        // Build a set of Tables
-        List<RelationalTable> tables = new ArrayList<RelationalTable>();
+    private static List<RelationalTable> getAllTables(final DatabaseMetaData metadata, final String catalog
+            , final String schema) throws SQLException {
+        final ResultSet rs = metadata.getTables( catalog, schema, null, TABLES_ONLY);
+
+        final List<RelationalTable> tables = new ArrayList<RelationalTable>();
 
         while (rs.next()) {
             RelationalTable table = new RelationalTable(new CatalogSchema(rs.getString(1), rs.getString(2)), rs.getString(3));
@@ -72,12 +50,8 @@ public class ParallelRDBuilder implements RelationalDatabaseBuilder {
         return tables;
     }
 
-    protected ResultSet doGetTablesQuery(CatalogSchema catalogSchema, String[] tableTypes) throws SQLException {
-        return metadataFactory.getMetadata().getTables(catalogSchema.getCatalog(), catalogSchema.getSchema(), null, tableTypes);
-    }
-
-    private List<Column> getColumns(RelationalTable table) throws SQLException {
-        ResultSet columnResultSet = metadataFactory.getMetadata().getColumns(table.getCatalogSchema().getCatalog(), table.getCatalogSchema().getSchema(), table.getName(), null);
+    private static List<Column> getColumns(DatabaseMetaData metadata, RelationalTable table) throws SQLException {
+        ResultSet columnResultSet = metadata.getColumns(table.getCatalogSchema().getCatalog(), table.getCatalogSchema().getSchema(), table.getName(), null);
 
         List<Column> columns = new LinkedList<Column>();
         while (columnResultSet.next()) {
@@ -99,8 +73,8 @@ public class ParallelRDBuilder implements RelationalDatabaseBuilder {
         return columns;
     }
 
-    private List<ForeignKey> getForeignKeys(RelationalTable table) throws SQLException {
-        ResultSet fkResultSet = metadataFactory.getMetadata().getImportedKeys(table.getCatalogSchema().getCatalog(), table.getCatalogSchema().getSchema(), table.getName());
+    private static List<ForeignKey> getForeignKeys(DatabaseMetaData metadata, RelationalTable table) throws SQLException {
+        ResultSet fkResultSet = metadata.getImportedKeys(table.getCatalogSchema().getCatalog(), table.getCatalogSchema().getSchema(), table.getName());
         List<ForeignKey> fks = new LinkedList<ForeignKey>();
         while (fkResultSet.next()) {
             ForeignKey fk = new ForeignKey();
@@ -120,14 +94,14 @@ public class ParallelRDBuilder implements RelationalDatabaseBuilder {
         return fks;
     }
 
-    private List<RelationalIndex> getIndices(RelationalTable table) throws SQLException {
+    private static List<RelationalIndex> getIndices(DatabaseMetaData metadata, RelationalTable table) throws SQLException {
         List<RelationalIndex> indices = new ArrayList<>();
 
         // maps index name to column names
         Multimap<String, String> idxColumns = ArrayListMultimap.create();
 
         // one row per index-column pair
-        ResultSet rs = metadataFactory.getMetadata().getIndexInfo(table.getCatalogSchema().getCatalog(),
+        ResultSet rs = metadata.getIndexInfo(table.getCatalogSchema().getCatalog(),
                 table.getCatalogSchema().getSchema(),
                 table.getName(), false, false);
 
@@ -163,9 +137,9 @@ public class ParallelRDBuilder implements RelationalDatabaseBuilder {
         return indices;
     }
 
-    private List<String> getPrimaryKeyColumns(RelationalTable table) throws SQLException {
+    private static List<String> getPrimaryKeyColumns(DatabaseMetaData metadata, RelationalTable table) throws SQLException {
         Map<Short, String> primaryKeys = new TreeMap<>();
-        ResultSet rs = metadataFactory.getMetadata().getPrimaryKeys(table.getCatalogSchema().getCatalog(), table.getCatalogSchema().getSchema(), table.getName());
+        ResultSet rs = metadata.getPrimaryKeys(table.getCatalogSchema().getCatalog(), table.getCatalogSchema().getSchema(), table.getName());
         while (rs.next()) {
             primaryKeys.put(rs.getShort(5), rs.getString(4));
         }
