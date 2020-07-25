@@ -4,7 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import dbdiff.pojos.db.*;
-import dbdiff.pojos.error.MissingReferencedColumn;
+import dbdiff.error.MissingReferencedColumn;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;

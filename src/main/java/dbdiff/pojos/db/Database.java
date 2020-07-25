@@ -1,6 +1,6 @@
 package dbdiff.pojos.db;
 
-import dbdiff.pojos.error.DuplicateTableName;
+import dbdiff.error.DuplicateTableName;
 
 import java.util.Collection;
 import java.util.Collections;

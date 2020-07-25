@@ -18,7 +18,7 @@ import java.util.List;
 
 import static dbdiff.Analyzer.analyze;
 
-public class RelationalDatabaseBuilderTest extends TestCase {
+public class AnalyzerTest extends TestCase {
 
     public void testCreateRelationalDatabase() throws Exception {
         Database database = getDatabase();
@@ -99,7 +99,7 @@ public class RelationalDatabaseBuilderTest extends TestCase {
     }
 
     private static String readResource(final String resource) throws IOException {
-        try (final var stream = RelationalDatabaseBuilderTest.class.getResourceAsStream(resource)) {
+        try (final var stream = AnalyzerTest.class.getResourceAsStream(resource)) {
             return IOUtils.toString(stream);
         }
     }

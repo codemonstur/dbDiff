@@ -1,6 +1,10 @@
 package dbdiff.pojos.db;
 
 import com.google.common.collect.*;
+import dbdiff.error.InvalidForeignKeyCatalogAndSchema;
+import dbdiff.error.InvalidForeignKeyTableName;
+import dbdiff.error.InvalidIndexCatalogAndSchema;
+import dbdiff.error.MissingTableName;
 import dbdiff.pojos.error.*;
 
 import java.sql.ResultSet;

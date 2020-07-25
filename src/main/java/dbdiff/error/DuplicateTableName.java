@@ -1,4 +1,4 @@
-package dbdiff.pojos.error;
+package dbdiff.error;
 
 import dbdiff.pojos.db.Table;
 
