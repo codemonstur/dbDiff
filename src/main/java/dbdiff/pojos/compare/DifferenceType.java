@@ -1,63 +1,54 @@
-package dbdiff.pojos.dbcompare;
+package dbdiff.pojos.compare;
 
-/**
- * Enumeration for possible database comparison errors
- */
-public enum RdbDifferenceType {
+public enum DifferenceType {
     /** A testdb is missing a ref table */
     MISSING_TABLE,
 
     /** A testdb has an unexpected table */
     UNEXPECTED_TABLE,
 
-
-    // Column Errors:
-    //--------------
     /** A testdb table is missing a ref column */
     MISSING_COLUMN,
 
     /** A test column is of the wrong type */
-    COL_TYPE_MISMATCH,
+    COLUMN_TYPE_MISMATCH,
 
     /** Test column sql type code is wrong but the sql type name is correct **/
-    COL_TYPE_WARNING,
+    COLUMN_TYPE_WARNING,
 
     /** A test column has the wrong default */
-    COL_DEFAULT_MISMATCH,
+    COLUMN_DEFAULT_MISMATCH,
 
     /** A test column has the wrong nullability */
-    COL_NULLABLE_MISMATCH,
+    COLUMN_NULLABLE_MISMATCH,
 
     /** A test column has the wrong size */
-    COL_SIZE_MISMATCH,
+    COLUMN_SIZE_MISMATCH,
 
     /** A test column has the wrong ordinal */
-    COL_ORDINAL_MISMATCH, //TODO: Make this a warning
+    COLUMN_ORDINAL_MISMATCH, //TODO: Make this a warning
 
     /** A test table has an extra column */
     UNEXPECTED_COLUMN,
 
-
-    //Foreign Key Errors
-    //--------------
     /** A test table is missing a FK */
-    MISSING_FK,
+    MISSING_FOREIGN_KEY,
 
     /** A test table's fk uses a column to reference another table just like a reference fk, but it's named differently from
      * the reference constraint */
-    MISNAMED_FK,
+    MISNAMED_FOREIGN_KEY,
 
     /** A test table contains a fk with the same name as a test fk, but it points to a different column */
-    MISCONFIGURED_FK,
+    MISCONFIGURED_FOREIGN_KEY,
 
     /** A test FK looks the same as a reference fk, but it has the wrong sequence (implications for composite key's index structure)*/
-    FK_SEQUENCE_MISMATCH,
+    FOREIGN_KEY_SEQUENCE_MISMATCH,
 
     /** A test table has a fk constraint not in the reference table */
-    UNEXPECTED_FK,
+    UNEXPECTED_FOREIGN_KEY,
 
     /** Unexpected fk difference */
-    UNKNOWN_FK_DIFF,
+    UNKNOWN_FOREIGN_KEY_DIFFERENCE,
 
     // Index Errors:
     //--------------
@@ -71,17 +62,17 @@ public enum RdbDifferenceType {
     UNEXPECTED_INDEX,
 
     /** A testdb table's index has an unexpected column */
-    UNEXPECTED_INDEX_COL,
+    UNEXPECTED_INDEX_COLUMN,
 
     /** An index is in both dbs with same name and column set but different column order */
     WRONG_INDEX_COL_ORDER,
 
-    // Primary key:
-    //--------------
     /** Test table is missing a primary key */
     MISSING_PRIMARY_KEY,
     /** Test table has a primary key but the reference table doesn't */
     UNEXPECTED_PRIMARY_KEY,
     /** Both table have primary keys but they span different columns */
-    MISCONFIGURED_PRIMARY_KEY
+    MISCONFIGURED_PRIMARY_KEY;
+
+
 }

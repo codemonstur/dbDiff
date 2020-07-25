@@ -1,0 +1,4 @@
+
+SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE `notification` ADD COLUMN `sent_date` bigint(20) NULL DEFAULT NULL AFTER `is_sent`;
+SET FOREIGN_KEY_CHECKS = 1;

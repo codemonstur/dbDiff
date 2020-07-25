@@ -1,0 +1,4 @@
+
+SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE `contact` ADD COLUMN `site_type` varchar(45) NULL DEFAULT NULL AFTER `uri_scanned`;
+SET FOREIGN_KEY_CHECKS = 1;

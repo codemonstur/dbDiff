@@ -1,0 +1,4 @@
+
+SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE `babyshower` MODIFY COLUMN `site_template` bigint(20) NOT NULL DEFAULT 0 AFTER `last_updated`;
+SET FOREIGN_KEY_CHECKS = 1;

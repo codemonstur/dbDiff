@@ -1,89 +1,58 @@
 package dbdiff.pojos.db;
 
-import dbdiff.pojos.relationaldb.NamedSchemaItem;
-
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Objects;
 
-/**
- * A model of a DB Table's column
- */
-public class Column extends NamedSchemaItem implements Comparable<Column> {
-    private final String table;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static java.sql.DatabaseMetaData.columnNoNulls;
+import static java.sql.DatabaseMetaData.columnNullable;
 
-    private String defaultValue;
-    private Boolean isNullable;
+public final class Column extends NamedSchemaItem implements Comparable<Column> {
+    public final String table;
+
+    public final String defaultValue;
+    public final Boolean isNullable;
     // For char or date types this is the maximum number of characters, for numeric or decimal types
     // this is precision.
-    private Integer columnSize;
-    private Integer ordinal;
-    private ColumnType columnType;
+    public final Integer columnSize;
+    public final Integer ordinal;
+    public final ColumnType columnType;
 
-    public Column(String catalog, String schema, String name, String table) {
-        super(catalog, schema, name);
-        this.table = table;
-    }
+    public Column(final ResultSet set) throws SQLException {
+        super(set.getString(1), set.getString(2), set.getString(4));
+        this.table = set.getString(3);
+        this.columnType = new ColumnType(set.getInt(5), set.getString(6));
+        this.columnSize = set.getInt(7);
 
-    public String getTable() {
-        return table;
-    }
-    public String getDefault() {
-        return defaultValue;
-    }
-    public void setDefault(String defaultVal) {
-        defaultValue = defaultVal;
-    }
-    public Boolean getIsNullable() {
-        return isNullable;
-    }
-    public void setIsNullable(Boolean isNullable) {
-        this.isNullable = isNullable;
-    }
-    public Integer getColumnSize() {
-        return columnSize;
+        final int nullable = set.getInt(11);
+        this.isNullable = columnNullable == nullable ? TRUE
+                        : columnNoNulls == nullable ? FALSE
+                        : null;
+
+        this.defaultValue = set.getString(13);
+        this.ordinal = set.getInt(17);
     }
 
-    public void setColumnSize(Integer columnSize) {
-        this.columnSize = columnSize;
-    }
-    public Integer getOrdinal() {
-        return ordinal;
-    }
-    public void setOrdinal(Integer ordinal) {
-        this.ordinal = ordinal;
-    }
-    public int getType() {
-        return columnType.getType();
-    }
-    public String getTypeName() {
-        return columnType.getTypeCode();
-    }
-    public ColumnType getColumnType() {
-        return columnType;
-    }
-    public void setColumnType(ColumnType columnType) {
-        this.columnType = columnType;
-    }
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Column)) {
-            return false;
-        }
-        Column other = (Column) o;
-        return getOrdinal().equals(other.getOrdinal()) && getName().equals(other.getName());
+        if (!(o instanceof Column)) return false;
+
+        final Column other = (Column) o;
+        return ordinal.equals(other.ordinal) && name.equals(other.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ordinal, getName());
+        return Objects.hash(ordinal, name);
     }
 
     @Override
     public int compareTo(Column o) {
-        int ordComp = getOrdinal().compareTo(o.getOrdinal());
-        if (ordComp == 0) {
-            return getName().compareTo(o.getName());
-        }
-        return ordComp;
+        final int ordComp = ordinal.compareTo(o.ordinal);
+        return ordComp == 0 ?  name.compareTo(o.name) :  ordComp;
     }
+
 }
