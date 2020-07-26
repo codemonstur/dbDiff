@@ -14,6 +14,7 @@ public final class Column extends NamedSchemaItem implements Comparable<Column> 
 
     public final String defaultValue;
     public final Boolean isNullable;
+    public final Boolean isAutoIncrement;
     // For char or date types this is the maximum number of characters, for numeric or decimal types
     // this is precision.
     public final Integer columnSize;
@@ -30,6 +31,7 @@ public final class Column extends NamedSchemaItem implements Comparable<Column> 
         this.isNullable = columnNullable == nullable ? TRUE
                         : columnNoNulls == nullable ? FALSE
                         : null;
+        this.isAutoIncrement = "YES".equals(set.getString(23));
 
         this.defaultValue = set.getString(13);
         this.ordinal = set.getInt(17);
@@ -55,4 +57,13 @@ public final class Column extends NamedSchemaItem implements Comparable<Column> 
         return ordComp == 0 ?  name.compareTo(o.name) :  ordComp;
     }
 
+    public String toSQLType() {
+        if (columnType.typeCode.endsWith(" UNSIGNED")) {
+            final String typeName = columnType.typeCode.substring(0, columnType.typeCode.lastIndexOf(' '));
+            return typeName.toLowerCase() + "("+ columnSize +") unsigned";
+        }
+        final String collate = columnType.typeCode.startsWith("VARCHAR") ? " COLLATE utf8mb4_bin" : "";
+        final int size = columnType.typeCode.startsWith("BIGINT") ? columnSize+1 : columnSize;
+        return columnType.typeCode.toLowerCase() + "("+ size +")" + collate;
+    }
 }

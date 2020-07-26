@@ -1,10 +1,6 @@
 package dbdiff;
 
-import dbdiff.pojos.db.Column;
-import dbdiff.pojos.db.ForeignKey;
-import dbdiff.pojos.db.Database;
-import dbdiff.pojos.db.Index;
-import dbdiff.pojos.db.Table;
+import dbdiff.pojos.db.*;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 
@@ -13,7 +9,6 @@ import java.sql.DriverManager;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static dbdiff.Analyzer.analyze;
@@ -46,10 +41,10 @@ public class AnalyzerTest extends TestCase {
 
         assertEquals("wrong number of indices", 2, personTable.getIndices().size());
 
-        Index nameDOB = getIndex(personTable, "NAME", "DOB");
+        Index nameDOB = findIndex(personTable, "NAME", "DOB");
         assertEquals("NAME_DOB_IDX", nameDOB.name);
 
-        getIndex(personTable, "ID");
+        findIndex(personTable, "ID");
 
         Table joinTable = database.getTableByName("PERSON_RELATIVES");
 
@@ -70,16 +65,16 @@ public class AnalyzerTest extends TestCase {
 
         assertEquals("wrong PK columns", Arrays.asList("PERSON_ID", "RELATIVE_ID"), joinTable.getPrimaryKeyColumns());
 
-        getIndex(joinTable, "PERSON_ID", "RELATIVE_ID");
+        findIndex(joinTable, "PERSON_ID", "RELATIVE_ID");
 
-        ForeignKey fkPerson = getForeignKey(joinTable, "FK_PERSON");
+        ForeignKey fkPerson = findForeignKey(joinTable, "FK_PERSON");
         assertEquals("PERSON_ID", fkPerson.fkColumn);
         assertEquals("PERSON_RELATIVES", fkPerson.fkTable);
 
         assertEquals("ID", fkPerson.pkColumn);
         assertEquals("PERSON", fkPerson.pkTable);
 
-        ForeignKey fkRelative = getForeignKey(joinTable, "FK_RELATIVE");
+        ForeignKey fkRelative = findForeignKey(joinTable, "FK_RELATIVE");
         assertEquals("RELATIVE_ID", fkRelative.fkColumn);
         assertEquals("PERSON_RELATIVES", fkRelative.fkTable);
 
@@ -104,21 +99,14 @@ public class AnalyzerTest extends TestCase {
         }
     }
 
-    /**
-     * Find a unique index that spans a list of columns. Fail if there's no such unique index.
-     */
-    private static Index getIndex(Table table, String... columnNames) {
-        Collection<Index> indices = table.getIndicesByColumns().get(Arrays.asList(columnNames));
-
+    private static Index findIndex(final Table table, final String... columnNames) {
+        final var indices = table.getIndicesByColumns().get(Arrays.asList(columnNames));
         assertEquals("cannot find a unique index for columns " + Arrays.asList(columnNames), 1, indices.size());
         return indices.iterator().next();
     }
 
-    /**
-     * Find a unique foreign key by name. Fail if there's no such unique foreign key.
-     */
-    private static ForeignKey getForeignKey(Table table, String name) {
-        Collection<ForeignKey> foreignKeys = table.getFksByName(name);
+    private static ForeignKey findForeignKey(final Table table, final String name) {
+        final var foreignKeys = table.getFksByName(name);
         assertEquals("cannot find a unique foreign key " + name, 1, foreignKeys.size());
         return foreignKeys.iterator().next();
     }

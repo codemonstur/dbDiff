@@ -5,7 +5,6 @@ import dbdiff.error.InvalidForeignKeyCatalogAndSchema;
 import dbdiff.error.InvalidForeignKeyTableName;
 import dbdiff.error.InvalidIndexCatalogAndSchema;
 import dbdiff.error.MissingTableName;
-import dbdiff.pojos.error.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +17,7 @@ public final class Table extends BaseColumnContainer {
     private Multimap<List<String>, Index> indicesByColumns;
     private Set<ForeignKey> foreignKeys;
     private List<String> primaryKeyColumns;
+    private List<Index> uniqueConstraints;
 
     // An internal search index of fk's by name
     private SetMultimap<String, ForeignKey> fksByName;
@@ -29,6 +29,13 @@ public final class Table extends BaseColumnContainer {
         super(set.getString(1), set.getString(2), set.getString(3));
         this.type = set.getString(4);
         this.typeName = set.getString(5);
+    }
+
+    public List<Index> getUniqueConstraints() {
+        return uniqueConstraints;
+    }
+    public void setUniqueConstraints(final List<Index> uniqueConstraints) {
+        this.uniqueConstraints = uniqueConstraints;
     }
 
     /**

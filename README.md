@@ -1,14 +1,18 @@
 DbDiff
 ========================
 
-Original code by Vecna Technologies.
-After a bunch of cleanup and rewriting I got it to work.
-Only to discover that the code doesn't generate migration scripts.
-It can only report differences in human readable form.
+I need a tool that can generate MySQL / MariaDB migration scripts.
+Looking around on the internet I found some database diffing code by Vecna Technologies.
+This code needed significant cleanup to make work but it was a start.
 
-I've been rewriting the code some more.
-Its getting to a point where I could add the migration logic.
-
+The code doesn't work yet.
+Migration script generation is in early stages.
+Known issues:
+- Only code for CREATE TABLE has been written
+- Collate and charset information is not available in JDBC metadata, currently the generator hard codes utf8mb4
+- Foreign key info is not included in the CREATE TABLE statement
+- Some data types show the wrong size, not clear why this is
+- No support for extending beyond MySQL
 
 Features
 -----------------

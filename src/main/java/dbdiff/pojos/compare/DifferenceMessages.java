@@ -7,16 +7,34 @@ import dbdiff.pojos.db.Index;
 import dbdiff.pojos.db.Table;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static dbdiff.pojos.compare.Difference.FoundOnSide.*;
 import static dbdiff.pojos.compare.DifferenceType.*;
+import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public enum DifferenceMessages {;
 
     public static Difference newMissingTable(final Table refT) {
-        return new Difference(MISSING_TABLE, "Reference Table '" + refT.name + "' is missing", FOUND_ON_OLD);
+        final List<Index> uniques = refT.getUniqueConstraints();
+        final String uniqueSql = uniques.isEmpty() ? "" : uniques.stream()
+                .map(index -> ", UNIQUE KEY `"+index.name+"` ("
+                    + index.getColumnNames().stream().map(s -> "`"+s+"`").collect(joining())
+                    + ")")
+                .collect(joining());
+
+        final var columns = refT.getColumns().stream().map(column -> {
+            final String nullable = column.isNullable ? " DEFAULT NULL" : " NOT NULL";
+            final String autoIncr = TRUE.equals(column.isAutoIncrement) ? " AUTO_INCREMENT" : "";
+            return "`" + column.name + "` " + column.toSQLType() + nullable + autoIncr;
+        }).collect(joining(", "));
+        final List<String> pks = refT.getPrimaryKeyColumns();
+        final String primaryKey = pks.isEmpty() ? "" : ", PRIMARY KEY (" + pks.stream().map(s -> "`"+s+"`").collect(joining(", ")) + ")";
+        return new Difference(MISSING_TABLE, "Reference Table '" + refT.name + "' is missing", FOUND_ON_OLD
+                , "CREATE TABLE `"+ refT.name+"` ( " + columns + primaryKey + uniqueSql + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;" );
     }
     public static Difference newUnexpectedTable(final Table testT) {
         return new Difference(UNEXPECTED_TABLE, "Test table '" + testT.name + "' is not in expected db", FOUND_ON_NEW);

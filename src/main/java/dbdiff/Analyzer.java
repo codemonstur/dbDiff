@@ -22,6 +22,7 @@ public enum Analyzer {;
             table.setForeignKeys(getForeignKeys(metadata, table));
             table.setPrimaryKeyColumns(getPrimaryKeyColumns(metadata, table));
             table.setIndices(getIndices(metadata, table));
+            table.setUniqueConstraints(getUniqueConstraints(metadata, table));
         }
 
         return new Database(tables);
@@ -36,7 +37,7 @@ public enum Analyzer {;
         return resultSetToList(rs, Table::new);
     }
 
-    private static List<Column> getColumns(DatabaseMetaData metadata, Table table) throws SQLException {
+    private static List<Column> getColumns(final DatabaseMetaData metadata, final Table table) throws SQLException {
         final var columnResultSet = metadata.getColumns(table.catalog, table.schema, table.name, null);
         return resultSetToList(columnResultSet, Column::new);
     }
@@ -46,7 +47,7 @@ public enum Analyzer {;
         return resultSetToList(fkResultSet, ForeignKey::new);
     }
 
-    private static List<Index> getIndices(DatabaseMetaData metadata, Table table) throws SQLException {
+    private static List<Index> getIndices(final DatabaseMetaData metadata, final Table table) throws SQLException {
         final var rs = metadata.getIndexInfo(table.catalog, table.schema, table.name, false, false);
         final var indexNames = new HashSet<String>();
         final var indexColumns = ArrayListMultimap.<String, String>create();
@@ -54,6 +55,21 @@ public enum Analyzer {;
 
         final List<Index> indices = new ArrayList<>();
         for (final String name : indexNames) {
+            indices.add(new Index(table.catalog, table.schema, name, getIndexColumns(indexColumns.get(name), name, table)));
+        }
+
+        return indices;
+    }
+
+    private static List<Index> getUniqueConstraints(final DatabaseMetaData metadata, final Table table) throws SQLException {
+        final var rs = metadata.getIndexInfo(table.catalog, table.schema, table.name, true, false);
+        final var indexNames = new HashSet<String>();
+        final var indexColumns = ArrayListMultimap.<String, String>create();
+        loadIndexNamesAndColumnsInto(rs, indexNames, indexColumns);
+
+        final List<Index> indices = new ArrayList<>();
+        for (final String name : indexNames) {
+            if ("PRIMARY".equals(name)) continue;
             indices.add(new Index(table.catalog, table.schema, name, getIndexColumns(indexColumns.get(name), name, table)));
         }
 
@@ -87,7 +103,7 @@ public enum Analyzer {;
         return columns;
     }
 
-    private static List<String> getPrimaryKeyColumns(DatabaseMetaData metadata, Table table) throws SQLException {
+    private static List<String> getPrimaryKeyColumns(final DatabaseMetaData metadata, final Table table) throws SQLException {
         final var primaryKeys = new TreeMap<Short, String>();
         final var rs = metadata.getPrimaryKeys(table.catalog, table.schema, table.name);
         while (rs.next()) {

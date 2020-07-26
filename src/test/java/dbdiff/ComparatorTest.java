@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import static dbdiff.Analyzer.analyze;
 import static dbdiff.Comparator.compare;
 
-public class MigrationTest {
+public class ComparatorTest {
 
     public static void main(String[] args) throws SQLException {
 
